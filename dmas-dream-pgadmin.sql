@@ -1,319 +1,241 @@
--- =====================================================
--- ROLE
--- =====================================================
-CREATE TABLE role (
-    role_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
+--
+-- PostgreSQL database dump
+--
+
+\restrict SOmmZEbnThzn7bNmyCATc1Zji8bAXwOd6woEcMYGqGEX9sIuMmVaf5qItCIjCLd
+
+-- Dumped from database version 18.2
+-- Dumped by pg_dump version 18.2
+
+-- Started on 2026-03-12 10:43:04
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 6024 (class 1262 OID 19953)
+-- Name: pinakabago_DB; Type: DATABASE; Schema: -; Owner: postgres
+--
+
+CREATE DATABASE "pinakabago_DB" WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'English_Philippines.1252';
+
+
+ALTER DATABASE "pinakabago_DB" OWNER TO postgres;
+
+\unrestrict SOmmZEbnThzn7bNmyCATc1Zji8bAXwOd6woEcMYGqGEX9sIuMmVaf5qItCIjCLd
+\connect "pinakabago_DB"
+\restrict SOmmZEbnThzn7bNmyCATc1Zji8bAXwOd6woEcMYGqGEX9sIuMmVaf5qItCIjCLd
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 7 (class 2615 OID 21042)
+-- Name: user; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA "user";
+
+
+ALTER SCHEMA "user" OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 232 (class 1259 OID 21070)
+-- Name: incident_management_team; Type: TABLE; Schema: user; Owner: postgres
+--
+
+CREATE TABLE "user".incident_management_team (
+    imt_id integer NOT NULL,
+    imt_name character varying NOT NULL
 );
 
--- =====================================================
--- SYSTEM AGENCY
--- =====================================================
-CREATE TABLE system_agency (
-    sys_ag_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    muni_id INT,
-    brgy_id INT,
-    ir_id INT,
-    contact_number VARCHAR(50),
-    email VARCHAR(255),
-    status VARCHAR(50) NOT NULL DEFAULT 'active'
-        CHECK (status IN ('active','inactive'))
+
+ALTER TABLE "user".incident_management_team OWNER TO postgres;
+
+--
+-- TOC entry 231 (class 1259 OID 21061)
+-- Name: role; Type: TABLE; Schema: user; Owner: postgres
+--
+
+CREATE TABLE "user".role (
+    role_id integer NOT NULL,
+    role_name character varying NOT NULL
 );
 
--- =====================================================
--- USER
--- =====================================================
-CREATE TABLE "user" (
-    u_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    sys_ag_id INT,
-    role_id INT NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'active'
-        CHECK (status IN ('active','inactive','banned')),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sys_ag_id) REFERENCES system_agency(sys_ag_id) ON DELETE SET NULL,
-    FOREIGN KEY (role_id) REFERENCES role(role_id) ON DELETE RESTRICT
+
+ALTER TABLE "user".role OWNER TO postgres;
+
+--
+-- TOC entry 230 (class 1259 OID 21047)
+-- Name: user; Type: TABLE; Schema: user; Owner: postgres
+--
+
+CREATE TABLE "user"."user" (
+    u_id integer NOT NULL,
+    u_fullname character varying NOT NULL,
+    u_password character varying NOT NULL,
+    syag_id integer CONSTRAINT user_sys_ag_id_not_null NOT NULL,
+    role_id integer NOT NULL,
+    u_status character varying NOT NULL,
+    u_created_at timestamp with time zone NOT NULL
 );
 
--- =====================================================
--- RESOURCE
--- =====================================================
-CREATE TABLE resource (
-    res_id SERIAL PRIMARY KEY,
-    sys_ag_id INT NOT NULL REFERENCES system_agency(sys_ag_id) ON DELETE CASCADE
-);
 
--- =====================================================
--- HUMAN RESOURCE
--- =====================================================
-CREATE TABLE human_resource (
-    hr_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    age INT CHECK (age >= 0),
-    gender VARCHAR(50),
-    weight REAL CHECK (weight >= 0),
-    contact VARCHAR(255),
-    capabilities TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'available'
-        CHECK (status IN ('available','unavailable','deployed')),
-    res_id INT NOT NULL REFERENCES resource(res_id) ON DELETE CASCADE
-);
+ALTER TABLE "user"."user" OWNER TO postgres;
 
--- =====================================================
--- NON-HUMAN RESOURCE
--- =====================================================
-CREATE TABLE non_human_resource (
-    nh_res_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(255) NOT NULL,
-    res_id INT NOT NULL REFERENCES resource(res_id) ON DELETE CASCADE
-);
+--
+-- TOC entry 256 (class 1259 OID 21397)
+-- Name: view_profile; Type: VIEW; Schema: user; Owner: postgres
+--
 
--- =====================================================
--- VEHICLE
--- =====================================================
-CREATE TABLE vehicle (
-    vehicle_id SERIAL PRIMARY KEY,
-    operator_name VARCHAR(255),
-    kind VARCHAR(255),
-    type VARCHAR(255),
-    plate_number VARCHAR(255) UNIQUE,
-    fuel_type VARCHAR(255),
-    weight REAL CHECK (weight >= 0),
-    contact_or_details VARCHAR(255),
-    capabilities_or_specialization TEXT,
-    others TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'available'
-        CHECK (status IN ('available','unavailable','maintenance')),
-    nh_res_id INT NOT NULL REFERENCES non_human_resource(nh_res_id) ON DELETE CASCADE
-);
+CREATE VIEW "user".view_profile AS
+ SELECT u_id,
+    u_fullname,
+    u_password,
+    syag_id,
+    role_id,
+    u_status,
+    u_created_at
+   FROM "user"."user"
+  WHERE ((u_fullname)::text = CURRENT_USER);
 
--- =====================================================
--- EQUIPMENT
--- =====================================================
-CREATE TABLE equipment (
-    equipment_id SERIAL PRIMARY KEY,
-    operator_name VARCHAR(255),
-    kind VARCHAR(255),
-    type VARCHAR(255),
-    source_of_power VARCHAR(255),
-    fuel_type VARCHAR(255),
-    weight REAL CHECK (weight >= 0),
-    contact_or_details VARCHAR(255),
-    capabilities_or_specialization TEXT,
-    others TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'available'
-        CHECK (status IN ('available','unavailable','maintenance')),
-    nh_res_id INT NOT NULL REFERENCES non_human_resource(nh_res_id) ON DELETE CASCADE
-);
 
--- =====================================================
--- INCIDENT MANAGEMENT TEAM
--- =====================================================
-CREATE TABLE incident_management_team (
-    imt_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-);
+ALTER VIEW "user".view_profile OWNER TO postgres;
 
-CREATE TABLE incident_management_member (
-    imt_member_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    role VARCHAR(255) NOT NULL,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    agency VARCHAR(255),
-    assigned_incident INT,
-    u_id INT REFERENCES "user"(u_id) ON DELETE SET NULL,
-    imt_id INT NOT NULL REFERENCES incident_management_team(imt_id) ON DELETE CASCADE
-);
+--
+-- TOC entry 255 (class 1259 OID 21393)
+-- Name: view_user; Type: VIEW; Schema: user; Owner: postgres
+--
 
--- =====================================================
--- DEPLOYMENT AREA
--- =====================================================
-CREATE TABLE deployment_area (
-    deparea_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT
-);
+CREATE VIEW "user".view_user AS
+ SELECT u_id,
+    u_fullname,
+    syag_id,
+    role_id,
+    u_status,
+    u_created_at
+   FROM "user"."user";
 
-CREATE TABLE deployment_area_geolocation (
-    deparea_geo_id SERIAL PRIMARY KEY,
-    latitude DECIMAL(10,6),
-    longitude DECIMAL(10,6),
-    deparea_id INT NOT NULL UNIQUE
-        REFERENCES deployment_area(deparea_id) ON DELETE CASCADE
-);
 
--- =====================================================
--- PROVINCE
--- =====================================================
-CREATE TABLE province (
-    prov_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    deparea_id INT REFERENCES deployment_area(deparea_id) ON DELETE SET NULL
-);
+ALTER VIEW "user".view_user OWNER TO postgres;
 
-CREATE TABLE province_geolocation (
-    prov_geo_id SERIAL PRIMARY KEY,
-    latitude DECIMAL(10,6),
-    longitude DECIMAL(10,6),
-    prov_id INT NOT NULL UNIQUE
-        REFERENCES province(prov_id) ON DELETE CASCADE
-);
+--
+-- TOC entry 6018 (class 0 OID 21070)
+-- Dependencies: 232
+-- Data for Name: incident_management_team; Type: TABLE DATA; Schema: user; Owner: postgres
+--
 
--- =====================================================
--- MUNICIPALITY
--- =====================================================
-CREATE TABLE municipality (
-    muni_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    prov_id INT NOT NULL REFERENCES province(prov_id) ON DELETE CASCADE
-);
 
-CREATE TABLE municipality_geolocation (
-    muni_geo_id SERIAL PRIMARY KEY,
-    latitude DECIMAL(10,6),
-    longitude DECIMAL(10,6),
-    muni_id INT NOT NULL UNIQUE
-        REFERENCES municipality(muni_id) ON DELETE CASCADE
-);
 
--- =====================================================
--- BARANGAY
--- =====================================================
-CREATE TABLE barangay (
-    brgy_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    muni_id INT NOT NULL REFERENCES municipality(muni_id) ON DELETE CASCADE
-);
+--
+-- TOC entry 6017 (class 0 OID 21061)
+-- Dependencies: 231
+-- Data for Name: role; Type: TABLE DATA; Schema: user; Owner: postgres
+--
 
-CREATE TABLE barangay_geolocation (
-    brgy_geo_id SERIAL PRIMARY KEY,
-    latitude DECIMAL(10,6),
-    longitude DECIMAL(10,6),
-    brgy_id INT NOT NULL UNIQUE
-        REFERENCES barangay(brgy_id) ON DELETE CASCADE
-);
+INSERT INTO "user".role VALUES (1, 'PDRRMO_ADMIN');
 
--- =====================================================
--- INCIDENT REPORT
--- =====================================================
-CREATE TABLE incident_report (
-    ir_id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    type VARCHAR(255) NOT NULL,
-    severity VARCHAR(255) NOT NULL,
-    source VARCHAR(255) NOT NULL,
-    prov_id INT REFERENCES province(prov_id) ON DELETE SET NULL,
-    muni_id INT REFERENCES municipality(muni_id) ON DELETE SET NULL,
-    brgy_id INT REFERENCES barangay(brgy_id) ON DELETE SET NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending','validated','resolved','closed')),
-    reported_by VARCHAR(255),
-    date_reported TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
 
--- =====================================================
--- CHECK-IN PORTAL
--- =====================================================
-CREATE TABLE check_in_portal (
-    ci_portal_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    ir_id INT NOT NULL REFERENCES incident_report(ir_id) ON DELETE CASCADE,
-    status VARCHAR(50) NOT NULL DEFAULT 'open'
-        CHECK (status IN ('open','closed')),
-    duration VARCHAR(255),
-    check_in_count INT DEFAULT 0 CHECK (check_in_count >= 0),
-    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+--
+-- TOC entry 6016 (class 0 OID 21047)
+-- Dependencies: 230
+-- Data for Name: user; Type: TABLE DATA; Schema: user; Owner: postgres
+--
 
--- =====================================================
--- DEPLOYMENT
--- =====================================================
-CREATE TABLE deployment (
-    dep_id SERIAL PRIMARY KEY,
-    status VARCHAR(50) NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending','ongoing','completed')),
-    latitude DECIMAL(10,6),
-    longitude DECIMAL(10,6),
-    ir_id INT REFERENCES incident_report(ir_id) ON DELETE SET NULL,
-    deparea_id INT REFERENCES deployment_area(deparea_id) ON DELETE SET NULL
-);
 
--- =====================================================
--- CHECK-IN AGENCY
--- =====================================================
-CREATE TABLE check_in_agency (
-    ci_ag_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    leader VARCHAR(255),
-    contact_number VARCHAR(50),
-    email VARCHAR(255),
-    status VARCHAR(50) NOT NULL DEFAULT 'active',
-    ci_portal_id INT NOT NULL REFERENCES check_in_portal(ci_portal_id) ON DELETE CASCADE,
-    dep_id INT REFERENCES deployment(dep_id) ON DELETE SET NULL
-);
 
--- =====================================================
--- CHECK-IN HUMAN RESOURCE
--- =====================================================
-CREATE TABLE check_in_human_resource (
-    ci_hr_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    age INT CHECK (age >= 0),
-    gender VARCHAR(255),
-    weight REAL CHECK (weight >= 0),
-    contact VARCHAR(255),
-    capabilities TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'active',
-    ci_ag_id INT NOT NULL REFERENCES check_in_agency(ci_ag_id) ON DELETE CASCADE,
-    imt_id INT REFERENCES incident_management_team(imt_id) ON DELETE SET NULL
-);
+--
+-- TOC entry 5859 (class 2606 OID 21078)
+-- Name: incident_management_team incident_management_team_pkey; Type: CONSTRAINT; Schema: user; Owner: postgres
+--
 
--- =====================================================
--- CHECK-IN NON-HUMAN RESOURCE
--- =====================================================
-CREATE TABLE check_in_non_human_resource (
-    ci_nhr_id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(255) NOT NULL,
-    ci_ag_id INT NOT NULL REFERENCES check_in_agency(ci_ag_id) ON DELETE CASCADE
-);
+ALTER TABLE ONLY "user".incident_management_team
+    ADD CONSTRAINT incident_management_team_pkey PRIMARY KEY (imt_id);
 
--- =====================================================
--- CHECK-IN VEHICLE
--- =====================================================
-CREATE TABLE check_in_vehicle (
-    ci_vehicle_id SERIAL PRIMARY KEY,
-    operator_name VARCHAR(255),
-    kind VARCHAR(255),
-    type VARCHAR(255),
-    plate_number VARCHAR(255) UNIQUE,
-    fuel_type VARCHAR(255),
-    weight REAL CHECK (weight >= 0),
-    contact_or_details VARCHAR(255),
-    capabilities_or_specialization TEXT,
-    others TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'active',
-    ci_nhr_id INT NOT NULL REFERENCES check_in_non_human_resource(ci_nhr_id) ON DELETE CASCADE
-);
 
--- =====================================================
--- CHECK-IN EQUIPMENT
--- =====================================================
-CREATE TABLE check_in_equipment (
-    ci_equipment_id SERIAL PRIMARY KEY,
-    operator_name VARCHAR(255),
-    kind VARCHAR(255),
-    type VARCHAR(255),
-    source_of_power VARCHAR(255),
-    fuel_type VARCHAR(255),
-    weight REAL CHECK (weight >= 0),
-    contact_or_details VARCHAR(255),
-    capabilities_or_specialization TEXT,
-    others TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'active',
-    ci_nhr_id INT NOT NULL REFERENCES check_in_non_human_resource(ci_nhr_id) ON DELETE CASCADE
-);
+--
+-- TOC entry 5857 (class 2606 OID 21069)
+-- Name: role role_pkey; Type: CONSTRAINT; Schema: user; Owner: postgres
+--
+
+ALTER TABLE ONLY "user".role
+    ADD CONSTRAINT role_pkey PRIMARY KEY (role_id);
+
+
+--
+-- TOC entry 5855 (class 2606 OID 21060)
+-- Name: user user_pkey; Type: CONSTRAINT; Schema: user; Owner: postgres
+--
+
+ALTER TABLE ONLY "user"."user"
+    ADD CONSTRAINT user_pkey PRIMARY KEY (u_id);
+
+
+--
+-- TOC entry 5860 (class 2606 OID 21376)
+-- Name: user role; Type: FK CONSTRAINT; Schema: user; Owner: postgres
+--
+
+ALTER TABLE ONLY "user"."user"
+    ADD CONSTRAINT role FOREIGN KEY (role_id) REFERENCES "user".role(role_id) NOT VALID;
+
+
+--
+-- TOC entry 5861 (class 2606 OID 21371)
+-- Name: user system_agency; Type: FK CONSTRAINT; Schema: user; Owner: postgres
+--
+
+ALTER TABLE ONLY "user"."user"
+    ADD CONSTRAINT system_agency FOREIGN KEY (syag_id) REFERENCES system_agency.system_agency(syag_id) NOT VALID;
+
+
+--
+-- TOC entry 6025 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: TABLE view_profile; Type: ACL; Schema: user; Owner: postgres
+--
+
+GRANT SELECT ON TABLE "user".view_profile TO "PDRRMO Staff";
+GRANT SELECT ON TABLE "user".view_profile TO "LGU";
+GRANT SELECT ON TABLE "user".view_profile TO "Check-In Agency";
+
+
+--
+-- TOC entry 6026 (class 0 OID 0)
+-- Dependencies: 255
+-- Name: TABLE view_user; Type: ACL; Schema: user; Owner: postgres
+--
+
+GRANT SELECT ON TABLE "user".view_user TO "PDRRMO Admin";
+
+
+-- Completed on 2026-03-12 10:43:04
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict SOmmZEbnThzn7bNmyCATc1Zji8bAXwOd6woEcMYGqGEX9sIuMmVaf5qItCIjCLd
+
